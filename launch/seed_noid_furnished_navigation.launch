@@ -3,8 +3,9 @@
   <arg name="robot_model" default="typef"/>
   <arg name="GUI" default="true"/>
   <arg name="HEADLESS" default="false"/>
-  <arg name="init_position_x" default="10.0"/>
-  <arg name="init_position_y" default="0.0"/>
+  <!-- Robot starts at (6, 2), facing +X. The person faces -X at (12, 0). -->
+  <arg name="init_position_x" default="6.0"/>
+  <arg name="init_position_y" default="2.0"/>
 
   <!-- Reuse the furnished upstream research-lab world without copying it. -->
   <include file="$(find seed_r7_gazebo)/launch/seed_r7_thk_world.launch">

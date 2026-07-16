@@ -47,6 +47,7 @@ Sim Phase S3として、次を追加しました。
 - GlobalPlannerとTEB Local Plannerを使用する`move_base`
 - 目標姿勢を受け取り、経路計画・旋回・走行・到達判定を行うNavigation HRI backend
 - 失敗時に長時間迷走しない有限timeoutとrecovery無効化
+- Navigation後の現在odomを毎回開始点として取り直すMove HRI backend
 
 ## 起動
 
@@ -85,11 +86,15 @@ roslaunch rosi_seed_noid_sim seed_noid_furnished_navigation.launch \
   robot_model:=typef GUI:=true
 rosrun rosi_seed_noid_sim navigation_hri_sim.py \
   _frame_id:=odom _navigation_timeout:=75
+rosrun rosi_seed_noid_sim move_hri_sim.py _move_timeout:=20
 ```
 
-標準配置はロボット `(10, 0)`、人物 `(12, 0)` です。人物検出・Depth位置推定の後、
-Navigationへ `[x, y, z, qx, qy, qz, qw]` を渡すと、`/scan` とcostmapを使って
-家具の間の経路を作り、`/SEED_Noid/completed_command`へ到達結果を返します。
+標準配置はロボット `(6, 2)`（`+X`向き）、人物 `(12, 0)`（`-X`向き）です。
+両者を約6.3 m離し、互いに異なる方向へ向けています。人物検出・Depth位置推定の後、
+人物正面2 mの`(10, 0)`をNavigation目標にします。Navigationへ
+`[x, y, z, qx, qy, qz, qw]`を渡すと、`/scan`とcostmapで机を考慮した経路を作り、
+`/SEED_Noid/completed_command`へ到達結果を返します。その後の1 m Moveで人物の
+約1 m手前へ進みます。
 
 ## 設計境界
 

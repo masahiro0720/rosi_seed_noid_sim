@@ -32,6 +32,9 @@ class HogPersonDetector:
             1, int(rospy.get_param("~required_consecutive", 3))
         )
         self.minimum_weight = float(rospy.get_param("~minimum_weight", 0.0))
+        self.detection_scale = max(
+            1.0, min(2.0, float(rospy.get_param("~detection_scale", 1.5)))
+        )
         self.publish_debug_image = bool(
             rospy.get_param("~publish_debug_image", True)
         )
@@ -80,11 +83,12 @@ class HogPersonDetector:
         self.judge_publisher.publish(Bool(data=False))
         rospy.loginfo(
             "HOG person detector is ready: topic=%s, rate=%.1f Hz, "
-            "required_consecutive=%d, minimum_weight=%.2f",
+            "required_consecutive=%d, minimum_weight=%.2f, scale=%.2f",
             self.image_topic,
             self.detection_rate,
             self.required_consecutive,
             self.minimum_weight,
+            self.detection_scale,
         )
 
     def handle_start(self, _request):
@@ -178,8 +182,17 @@ class HogPersonDetector:
             self.processing_lock.release()
 
     def detect_people(self, image):
+        detection_image = image
+        if self.detection_scale != 1.0:
+            detection_image = cv2.resize(
+                image,
+                None,
+                fx=self.detection_scale,
+                fy=self.detection_scale,
+                interpolation=cv2.INTER_LINEAR,
+            )
         rectangles, weights = self.hog.detectMultiScale(
-            image,
+            detection_image,
             hitThreshold=0.0,
             winStride=(8, 8),
             padding=(8, 8),
@@ -193,6 +206,11 @@ class HogPersonDetector:
             if score < self.minimum_weight:
                 continue
             x, y, width, height = (int(value) for value in rectangle)
+            if self.detection_scale != 1.0:
+                x = int(round(x / self.detection_scale))
+                y = int(round(y / self.detection_scale))
+                width = int(round(width / self.detection_scale))
+                height = int(round(height / self.detection_scale))
             detections.append((x, y, width, height, score))
         return detections
 

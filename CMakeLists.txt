@@ -41,6 +41,7 @@ catkin_package(
 
 catkin_install_python(
   PROGRAMS
+  scripts/move_hri_sim.py
   scripts/navigation_hri_sim.py
   scripts/person_detection_hog.py
   scripts/person_localization_depth.py

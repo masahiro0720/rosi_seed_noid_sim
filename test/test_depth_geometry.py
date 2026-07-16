@@ -42,6 +42,13 @@ class DepthGeometryTests(unittest.TestCase):
         )
         self.assertEqual(result, (0.0, 0.3, 2.9))
 
+    def test_median_accepts_configured_far_person_depth(self):
+        result = median_xyz(
+            [(-2.0, 0.1, 6.2), (-1.9, 0.2, 6.3), (-1.8, 0.3, 6.4)],
+            maximum_depth=10.0,
+        )
+        self.assertEqual(result, (-1.9, 0.2, 6.3))
+
     def test_roi_sampling_stays_inside_image(self):
         roi = PersonRoi(
             image_width=640,

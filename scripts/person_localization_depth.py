@@ -85,6 +85,12 @@ class DepthPersonLocalizer:
         self.minimum_valid_points = max(
             1, int(rospy.get_param("~minimum_valid_points", 5))
         )
+        self.minimum_depth = max(
+            0.1, float(rospy.get_param("~minimum_depth", 0.5))
+        )
+        self.maximum_depth = max(
+            self.minimum_depth, float(rospy.get_param("~maximum_depth", 10.0))
+        )
         self.grid_size = max(3, int(rospy.get_param("~grid_size", 7)))
 
         self.condition = threading.Condition()
@@ -182,14 +188,16 @@ class DepthPersonLocalizer:
             point
             for point in points
             if all(math.isfinite(value) for value in point)
-            and 0.5 <= float(point[2]) <= 5.0
+            and self.minimum_depth <= float(point[2]) <= self.maximum_depth
         ]
         if len(finite) < self.minimum_valid_points:
             raise RuntimeError(
                 f"person ROI has only {len(finite)} valid depth points; "
                 f"required={self.minimum_valid_points}"
             )
-        x, y, z = median_xyz(finite)
+        x, y, z = median_xyz(
+            finite, self.minimum_depth, self.maximum_depth
+        )
         source = PointStamped()
         source.header = cloud.header
         if not source.header.frame_id:

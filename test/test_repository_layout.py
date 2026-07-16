@@ -56,6 +56,8 @@ class RepositoryLayoutTests(unittest.TestCase):
         self.assertIn('rospy.get_param("~image_topic", "/camera/image_raw")', source)
         self.assertIn("cv2.HOGDescriptor_getDefaultPeopleDetector()", source)
         self.assertIn("self.required_consecutive", source)
+        self.assertIn('rospy.get_param("~detection_scale", 1.5)', source)
+        self.assertIn("x / self.detection_scale", source)
         self.assertIn('"/start", JudgeParam, self.handle_start', source)
         self.assertIn('"/stop", JudgeParam, self.handle_stop', source)
         self.assertIn('"/detection", detection, self.handle_detection', source)
@@ -79,7 +81,8 @@ class RepositoryLayoutTests(unittest.TestCase):
             PACKAGE_ROOT / "launch" / "seed_noid_furnished_navigation.launch"
         ).read_text(encoding="utf-8")
         self.assertIn("seed_r7_thk_world.launch", launch)
-        self.assertIn('default="10.0"', launch)
+        self.assertIn('name="init_position_x" default="6.0"', launch)
+        self.assertIn('name="init_position_y" default="2.0"', launch)
         self.assertIn("models/sim_person.sdf", launch)
         self.assertIn('pkg="move_base" type="move_base"', launch)
         self.assertIn("TebLocalPlannerROS", launch)
@@ -92,6 +95,9 @@ class RepositoryLayoutTests(unittest.TestCase):
         poses = root.findall("./actor/script/trajectory/waypoint/pose")
         self.assertEqual(len(poses), 2)
         self.assertTrue(all(pose.text.strip().startswith("12 0 0 ") for pose in poses))
+        self.assertTrue(
+            all(pose.text.strip().endswith("3.14159265359") for pose in poses)
+        )
 
     def test_navigation_hri_uses_move_base_with_timeout_and_completion(self):
         source = (PACKAGE_ROOT / "scripts" / "navigation_hri_sim.py").read_text(
@@ -102,6 +108,18 @@ class RepositoryLayoutTests(unittest.TestCase):
         self.assertIn('prefix + "/navi_set_param"', source)
         self.assertIn("self.navigation_timeout", source)
         self.assertIn('completion_status = "completed"', source)
+
+    def test_move_hri_snapshots_odom_for_each_start(self):
+        source = (PACKAGE_ROOT / "scripts" / "move_hri_sim.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('prefix + "/execute/Move"', source)
+        self.assertIn('prefix + "/move_set_param"', source)
+        self.assertIn("start_xy = self.wait_for_position()", source)
+        self.assertIn("target_xy = [start_xy[0]", source)
+        self.assertIn("self.minimum_speed", source)
+        self.assertIn("math.copysign(self.minimum_speed, error)", source)
+        self.assertIn('message = completed(command_id="Move", status=status)', source)
 
 
 if __name__ == "__main__":
