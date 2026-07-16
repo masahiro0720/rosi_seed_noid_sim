@@ -29,7 +29,7 @@ Sim Phase S1として、次を追加しました。
 - `/start`、`/stop`、`/detection`と`/judge_param`の既存HRI契約
 - 連続フレーム確認と検出枠付きdebug画像
 
-人物同定、位置推定、Approach、Touch、Leave、Navigationのbackendは、後続phaseで
+人物同定、Approach、Touch、Leaveのより実機に近いbackendは、後続phaseで
 このpackageへ追加します。
 
 Sim Phase S2として、次を追加しました。
@@ -39,6 +39,14 @@ Sim Phase S2として、次を追加しました。
 - Gazebo固有の平坦化PointCloud（307200×1）への画素index変換
 - `camera_optical_frame`から`base_link`へのTF変換
 - 固定位置ではなく実測した位置を返す`/get_position`サービス
+
+Sim Phase S3として、次を追加しました。
+
+- 上流`seed_r7_gazebo/seed_r7_thk_world.launch`を再利用する家具付き研究室world
+- 机・椅子・棚の配置を`/scan`で認識するrolling costmap
+- GlobalPlannerとTEB Local Plannerを使用する`move_base`
+- 目標姿勢を受け取り、経路計画・旋回・走行・到達判定を行うNavigation HRI backend
+- 失敗時に長時間迷走しない有限timeoutとrecovery無効化
 
 ## 起動
 
@@ -70,6 +78,19 @@ rosrun rosi_seed_noid_sim person_localization_depth.py \
 
 このlaunchは実機用`seed_r7_bringup`を起動しません。
 
+家具付きworldと自律Navigationは次で起動します。
+
+```bash
+roslaunch rosi_seed_noid_sim seed_noid_furnished_navigation.launch \
+  robot_model:=typef GUI:=true
+rosrun rosi_seed_noid_sim navigation_hri_sim.py \
+  _frame_id:=odom _navigation_timeout:=75
+```
+
+標準配置はロボット `(10, 0)`、人物 `(12, 0)` です。人物検出・Depth位置推定の後、
+Navigationへ `[x, y, z, qx, qy, qz, qw]` を渡すと、`/scan` とcostmapを使って
+家具の間の経路を作り、`/SEED_Noid/completed_command`へ到達結果を返します。
+
 ## 設計境界
 
 HRIコンポーネントは実機・simulationで共通とし、このpackageが実機driverと同じROS
@@ -80,7 +101,7 @@ service、topic、actionを提供します。
 | `/detection`, `/start`, `/stop`, `/judge_param` | Gazebo RGB画像の人物検出 |
 | `/get_position` | RGB-D画像からの人物三次元位置推定 |
 | `/seed_robot_action` | Gazebo台車・腕controller |
-| `move_base` | map、AMCL、LaserScanによるNavigation |
+| `move_base` | Gazebo odometry、LaserScan、rolling costmapによるNavigation |
 
 音声認識、言語理解、健康リスク判定、音声再生は`health_judge` RTCを使用し、この
 repositoryには複製しません。

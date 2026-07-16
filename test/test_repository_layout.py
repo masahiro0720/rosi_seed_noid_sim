@@ -17,12 +17,16 @@ class RepositoryLayoutTests(unittest.TestCase):
             {
                 "cv_bridge",
                 "gazebo_ros",
+                "global_planner",
                 "geometry_msgs",
+                "move_base",
+                "move_base_msgs",
                 "rois_env",
                 "rospy",
                 "seed_r7_gazebo",
                 "sensor_msgs",
                 "std_msgs",
+                "teb_local_planner",
                 "tf2_geometry_msgs",
                 "tf2_ros",
             }.issubset(dependencies)
@@ -69,6 +73,35 @@ class RepositoryLayoutTests(unittest.TestCase):
         self.assertIn('"/get_position", GetPosition', source)
         self.assertIn('"/rosi_seed_noid_sim/person_position"', source)
         self.assertNotIn("ROSI_HRI_MOCK_POSITION", source)
+
+    def test_furnished_navigation_launch_reuses_thk_world_and_move_base(self):
+        launch = (
+            PACKAGE_ROOT / "launch" / "seed_noid_furnished_navigation.launch"
+        ).read_text(encoding="utf-8")
+        self.assertIn("seed_r7_thk_world.launch", launch)
+        self.assertIn('default="10.0"', launch)
+        self.assertIn("models/sim_person.sdf", launch)
+        self.assertIn('pkg="move_base" type="move_base"', launch)
+        self.assertIn("TebLocalPlannerROS", launch)
+        self.assertIn("GlobalPlanner", launch)
+        self.assertIn('recovery_behavior_enabled" value="false"', launch)
+        self.assertNotIn("seed_r7_bringup", launch)
+
+    def test_furnished_actor_is_visible_in_front_of_robot(self):
+        root = ET.parse(str(PACKAGE_ROOT / "models" / "sim_person.sdf")).getroot()
+        poses = root.findall("./actor/script/trajectory/waypoint/pose")
+        self.assertEqual(len(poses), 2)
+        self.assertTrue(all(pose.text.strip().startswith("12 0 0 ") for pose in poses))
+
+    def test_navigation_hri_uses_move_base_with_timeout_and_completion(self):
+        source = (PACKAGE_ROOT / "scripts" / "navigation_hri_sim.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("SimpleActionClient(\"move_base\", MoveBaseAction)", source)
+        self.assertIn('prefix + "/execute/Navigation"', source)
+        self.assertIn('prefix + "/navi_set_param"', source)
+        self.assertIn("self.navigation_timeout", source)
+        self.assertIn('completion_status = "completed"', source)
 
 
 if __name__ == "__main__":

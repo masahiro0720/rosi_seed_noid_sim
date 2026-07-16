@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <actor name="sim_person">
+    <!-- Gazebo Actor trajectory poses are world coordinates. -->
+    <pose>0 0 0 0 0 0</pose>
+    <skin>
+      <filename>file://media/models/walk.dae</filename>
+      <scale>1.0</scale>
+    </skin>
+    <animation name="standing">
+      <filename>file://media/models/walk.dae</filename>
+      <scale>1.0</scale>
+      <interpolate_x>true</interpolate_x>
+    </animation>
+    <script>
+      <loop>true</loop>
+      <delay_start>0.0</delay_start>
+      <auto_start>true</auto_start>
+      <trajectory id="0" type="standing">
+        <waypoint>
+          <time>0.0</time>
+          <pose>12 0 0 0 0 3.14159265359</pose>
+        </waypoint>
+        <waypoint>
+          <time>1.0</time>
+          <pose>12 0 0 0 0 3.14159265359</pose>
+        </waypoint>
+      </trajectory>
+    </script>
+  </actor>
+</sdf>

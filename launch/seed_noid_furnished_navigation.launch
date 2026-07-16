@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="robot_model" default="typef"/>
+  <arg name="GUI" default="true"/>
+  <arg name="HEADLESS" default="false"/>
+  <arg name="init_position_x" default="10.0"/>
+  <arg name="init_position_y" default="0.0"/>
+
+  <!-- Reuse the furnished upstream research-lab world without copying it. -->
+  <include file="$(find seed_r7_gazebo)/launch/seed_r7_thk_world.launch">
+    <arg name="robot_model" value="$(arg robot_model)"/>
+    <arg name="GUI" value="$(arg GUI)"/>
+    <arg name="init_position_x" value="$(arg init_position_x)"/>
+    <arg name="init_position_y" value="$(arg init_position_y)"/>
+  </include>
+
+  <node name="sim_person_spawner" pkg="gazebo_ros" type="spawn_model"
+        output="screen"
+        args="-sdf -file $(find rosi_seed_noid_sim)/models/sim_person.sdf
+              -model sim_person"/>
+
+  <!-- The simulator odometry is exact, so map and odom intentionally coincide. -->
+  <node name="map_to_odom" pkg="tf2_ros" type="static_transform_publisher"
+        args="0 0 0 0 0 0 map odom"/>
+
+  <node name="move_base" pkg="move_base" type="move_base" output="screen">
+    <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
+    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
+    <param name="planner_frequency" value="1.0"/>
+    <param name="controller_frequency" value="10.0"/>
+    <param name="planner_patience" value="8.0"/>
+    <param name="controller_patience" value="12.0"/>
+    <param name="recovery_behavior_enabled" value="false"/>
+    <param name="clearing_rotation_allowed" value="false"/>
+    <rosparam file="$(find seed_r7_navigation)/config/TebLocalPlanner.yaml"/>
+    <param name="TebLocalPlannerROS/map_frame" value="odom"/>
+    <rosparam file="$(find rosi_seed_noid_sim)/config/navigation/costmap_common.yaml"
+              ns="global_costmap"/>
+    <rosparam file="$(find rosi_seed_noid_sim)/config/navigation/global_costmap.yaml"
+              ns="global_costmap"/>
+    <rosparam file="$(find rosi_seed_noid_sim)/config/navigation/costmap_common.yaml"
+              ns="local_costmap"/>
+    <rosparam file="$(find rosi_seed_noid_sim)/config/navigation/local_costmap.yaml"
+              ns="local_costmap"/>
+  </node>
+</launch>
