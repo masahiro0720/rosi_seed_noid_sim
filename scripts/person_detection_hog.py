@@ -19,6 +19,7 @@ from rois_env.srv import (
     detection,
     detectionResponse,
 )
+from rosi_seed_noid_sim.msg import PersonRoi
 
 
 class HogPersonDetector:
@@ -55,6 +56,9 @@ class HogPersonDetector:
         )
         self.debug_publisher = rospy.Publisher(
             "~debug_image", Image, queue_size=1
+        )
+        self.roi_publisher = rospy.Publisher(
+            "/rosi_seed_noid_sim/person_roi", PersonRoi, queue_size=1, latch=True
         )
         self.detection_service = rospy.Service(
             "/detection", detection, self.handle_detection
@@ -238,9 +242,21 @@ class HogPersonDetector:
         )
 
         if confirmed:
+            selected = max(detections, key=lambda detection: detection[4])
+            roi = PersonRoi()
+            roi.header = source_message.header
+            roi.image_width = image.shape[1]
+            roi.image_height = image.shape[0]
+            roi.x_offset = selected[0]
+            roi.y_offset = selected[1]
+            roi.width = selected[2]
+            roi.height = selected[3]
+            roi.score = selected[4]
+            self.roi_publisher.publish(roi)
             self.judge_publisher.publish(Bool(data=True))
             rospy.loginfo(
-                "Published /judge_param: true after %d consecutive detections.",
+                "Published person ROI and /judge_param: true after %d consecutive "
+                "detections.",
                 consecutive_count,
             )
 

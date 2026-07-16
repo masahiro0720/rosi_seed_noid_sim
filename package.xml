@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>rosi_seed_noid_sim</name>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
   <description>
     Reproducible Gazebo simulation backends for the RoSI SEED-Noid HRI system.
   </description>
@@ -15,11 +15,17 @@
 
   <depend>cv_bridge</depend>
   <depend>gazebo_ros</depend>
+  <depend>geometry_msgs</depend>
   <depend>rois_env</depend>
   <depend>rospy</depend>
   <depend>seed_r7_gazebo</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>tf2_ros</depend>
+
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
 
   <exec_depend>python3-opencv</exec_depend>
 

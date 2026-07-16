@@ -17,11 +17,14 @@ class RepositoryLayoutTests(unittest.TestCase):
             {
                 "cv_bridge",
                 "gazebo_ros",
+                "geometry_msgs",
                 "rois_env",
                 "rospy",
                 "seed_r7_gazebo",
                 "sensor_msgs",
                 "std_msgs",
+                "tf2_geometry_msgs",
+                "tf2_ros",
             }.issubset(dependencies)
         )
 
@@ -53,7 +56,19 @@ class RepositoryLayoutTests(unittest.TestCase):
         self.assertIn('"/stop", JudgeParam, self.handle_stop', source)
         self.assertIn('"/detection", detection, self.handle_detection', source)
         self.assertIn('"/judge_param", Bool', source)
+        self.assertIn('"/rosi_seed_noid_sim/person_roi", PersonRoi', source)
         self.assertNotIn("rospy.Timer", source)
+
+    def test_depth_localizer_uses_roi_flat_cloud_tf_and_real_service(self):
+        source = (
+            PACKAGE_ROOT / "scripts" / "person_localization_depth.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn('rospy.get_param("~cloud_topic", "/camera/points")', source)
+        self.assertIn("v * image_width + u", source)
+        self.assertIn('self.target_frame = rospy.get_param("~target_frame", "base_link")', source)
+        self.assertIn('"/get_position", GetPosition', source)
+        self.assertIn('"/rosi_seed_noid_sim/person_position"', source)
+        self.assertNotIn("ROSI_HRI_MOCK_POSITION", source)
 
 
 if __name__ == "__main__":

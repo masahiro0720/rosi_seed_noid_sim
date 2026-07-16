@@ -32,6 +32,14 @@ Sim Phase S1として、次を追加しました。
 人物同定、位置推定、Approach、Touch、Leave、Navigationのbackendは、後続phaseで
 このpackageへ追加します。
 
+Sim Phase S2として、次を追加しました。
+
+- HOG確定時の人物ROI topic
+- `/camera/points`から人物領域の三次元点を抽出するDepth localization node
+- Gazebo固有の平坦化PointCloud（307200×1）への画素index変換
+- `camera_optical_frame`から`base_link`へのTF変換
+- 固定位置ではなく実測した位置を返す`/get_position`サービス
+
 ## 起動
 
 ```bash
@@ -49,6 +57,16 @@ rosrun rosi_seed_noid_sim person_detection_hog.py \
 nodeは`/start`が呼ばれるまで画像を判定せず、人物を指定フレーム数連続して検出した
 場合だけ`/judge_param: true`をpublishします。検出結果は
 `/person_detection_hog/debug_image`で確認できます。
+
+Depth localization nodeは次で起動します。
+
+```bash
+rosrun rosi_seed_noid_sim person_localization_depth.py \
+  _target_frame:=base_link
+```
+
+位置は`base_link`基準のメートル単位`[x, y, z]`で返し、
+`/rosi_seed_noid_sim/person_position`にも`geometry_msgs/PointStamped`としてpublishします。
 
 このlaunchは実機用`seed_r7_bringup`を起動しません。
 
