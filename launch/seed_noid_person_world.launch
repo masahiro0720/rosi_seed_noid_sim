@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="robot_model" default="typef"/>
+  <arg name="GUI" default="true"/>
+  <arg name="HEADLESS" default="false"/>
+  <arg name="PAUSED" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+
+  <include file="$(find seed_r7_gazebo)/launch/seed_r7_empty_world.launch">
+    <arg name="robot_model" value="$(arg robot_model)"/>
+    <arg name="GUI" value="$(arg GUI)"/>
+    <arg name="HEADLESS" value="$(arg HEADLESS)"/>
+    <arg name="PAUSED" value="$(arg PAUSED)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="WORLD_FILE" value="$(find rosi_seed_noid_sim)/worlds/person_detection.world"/>
+  </include>
+</launch>
