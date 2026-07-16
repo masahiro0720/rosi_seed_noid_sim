@@ -23,8 +23,14 @@ Sim Phase S0として、次を提供します。
 - catkin package metadata
 - repository layout test
 
-人物検出、人物同定、位置推定、Approach、Touch、Leave、Navigationのbackendは、
-後続phaseでこのpackageへ追加します。
+Sim Phase S1として、次を追加しました。
+
+- `/camera/image_raw`を入力とするOpenCV HOG人物検出node
+- `/start`、`/stop`、`/detection`と`/judge_param`の既存HRI契約
+- 連続フレーム確認と検出枠付きdebug画像
+
+人物同定、位置推定、Approach、Touch、Leave、Navigationのbackendは、後続phaseで
+このpackageへ追加します。
 
 ## 起動
 
@@ -32,6 +38,17 @@ Sim Phase S0として、次を提供します。
 roslaunch rosi_seed_noid_sim seed_noid_person_world.launch \
   robot_model:=typef GUI:=true
 ```
+
+別terminalで人物検出nodeを起動します。
+
+```bash
+rosrun rosi_seed_noid_sim person_detection_hog.py \
+  _detection_rate:=5.0 _required_consecutive:=3
+```
+
+nodeは`/start`が呼ばれるまで画像を判定せず、人物を指定フレーム数連続して検出した
+場合だけ`/judge_param: true`をpublishします。検出結果は
+`/person_detection_hog/debug_image`で確認できます。
 
 このlaunchは実機用`seed_r7_bringup`を起動しません。
 
